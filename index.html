@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cosmic Cat Lead Board</title>
+  <script>try{var t=localStorage.getItem('ccLeadBoardTheme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Space+Mono:wght@400;700&display=swap">
   <style>
     :root {
@@ -35,7 +36,7 @@
     }
 
     @media (prefers-color-scheme: dark) {
-      :root {
+      :root:not([data-theme="light"]) {
         --bg: #0f1019;
         --surface: #1a1c2b;
         --fg: #e4e5ed;
@@ -60,6 +61,39 @@
         color-scheme: dark;
       }
     }
+    :root[data-theme="dark"] {
+      --bg: #0f1019;
+      --surface: #1a1c2b;
+      --fg: #e4e5ed;
+      --fg-muted: #8b8fa6;
+      --border: #2c2f42;
+      --accent: #5b8af5;
+      --accent-light: #1e2540;
+      --accent-hover: #7aa2ff;
+      --red: #fc8181;
+      --red-bg: #2a1515;
+      --red-border: #4a2020;
+      --yellow: #f6e05e;
+      --yellow-bg: #2a2510;
+      --yellow-border: #4a3e15;
+      --green: #68d391;
+      --green-bg: #102a1a;
+      --green-border: #1a4a2a;
+      --won: #68d391;
+      --lost: #6b7084;
+      --shadow: 0 1px 3px rgba(0,0,0,0.3);
+      --shadow-lg: 0 4px 16px rgba(0,0,0,0.4);
+      color-scheme: dark;
+    }
+
+    .theme-toggle {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 20px; cursor: pointer; font-size: 18px;
+      width: 38px; height: 38px; display: flex; align-items: center;
+      justify-content: center; transition: background 0.2s, border-color 0.2s;
+      padding: 0; line-height: 1;
+    }
+    .theme-toggle:hover { border-color: var(--accent); }
 
     * { box-sizing: border-box; margin: 0; }
     body {
@@ -895,6 +929,7 @@ const firebaseConfig = {
             <h1>Lead Board v2.0 <span>Cosmic Cat</span></h1>
           </div>
           <div class="header-actions">
+            <button class="theme-toggle" onclick="window._toggleTheme()" title="Switch theme" id="themeBtn">${document.documentElement.getAttribute('data-theme') === 'dark' || (!document.documentElement.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches) ? '☀️' : '🌙'}</button>
             <div class="user-chip" onclick="window._switchUser()" title="Switch user">👤 ${esc(CURRENT_USER)} <small>switch</small></div>
             <button class="btn btn-ghost" onclick="window._showFeed()">📋 Activity</button>
             <button class="btn btn-primary" onclick="window._openAdd()">+ Add Lead</button>
@@ -1339,6 +1374,27 @@ const firebaseConfig = {
     const v = el ? el.value.trim() : '';
     if (v) writeUser(v);
   };
+  // --- theme toggle ---
+  const THEME_KEY = 'ccLeadBoardTheme';
+  function applyTheme(t) {
+    if (t === 'light' || t === 'dark') {
+      document.documentElement.setAttribute('data-theme', t);
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+  }
+  try { applyTheme(localStorage.getItem(THEME_KEY)); } catch(e) {}
+
+  window._toggleTheme = () => {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark' ||
+      (!document.documentElement.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    const next = isDark ? 'light' : 'dark';
+    applyTheme(next);
+    try { localStorage.setItem(THEME_KEY, next); } catch(e) {}
+    const btn = document.getElementById('themeBtn');
+    if (btn) btn.textContent = next === 'dark' ? '☀️' : '🌙';
+  };
+
   window._switchUser = () => {
     try { localStorage.removeItem(USER_KEY); } catch (e) {}
     CURRENT_USER = '';
