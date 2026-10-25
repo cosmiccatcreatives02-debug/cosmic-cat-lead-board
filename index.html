@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cosmic Cat Lead Board</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Space+Mono:wght@400;700&display=swap">
+  <style>
+    :root {
+      --bg: #f5f6fa;
+      --surface: #ffffff;
+      --fg: #1a1d2e;
+      --fg-muted: #6b7084;
+      --border: #e2e4ed;
+      --accent: #2d5be3;
+      --accent-light: #e8edfb;
+      --accent-hover: #1e4bcc;
+      --red: #e53e3e;
+      --red-bg: #fef2f2;
+      --red-border: #fecaca;
+      --yellow: #d69e2e;
+      --yellow-bg: #fefce8;
+      --yellow-border: #fef08a;
+      --green: #38a169;
+      --green-bg: #f0fdf4;
+      --green-border: #bbf7d0;
+      --won: #38a169;
+      --lost: #9ca3af;
+      --font-body: 'DM Sans', system-ui, sans-serif;
+      --font-mono: 'Space Mono', monospace;
+      --radius: 10px;
+      --radius-sm: 6px;
+      --shadow: 0 1px 3px rgba(26,29,46,0.06), 0 1px 2px rgba(26,29,46,0.04);
+      --shadow-lg: 0 4px 16px rgba(26,29,46,0.1);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f1019;
+        --surface: #1a1c2b;
+        --fg: #e4e5ed;
+        --fg-muted: #8b8fa6;
+        --border: #2c2f42;
+        --accent: #5b8af5;
+        --accent-light: #1e2540;
+        --accent-hover: #7aa2ff;
+        --red: #fc8181;
+        --red-bg: #2a1515;
+        --red-border: #4a2020;
+        --yellow: #f6e05e;
+        --yellow-bg: #2a2510;
+        --yellow-border: #4a3e15;
+        --green: #68d391;
+        --green-bg: #102a1a;
+        --green-border: #1a4a2a;
+        --won: #68d391;
+        --lost: #6b7084;
+        --shadow: 0 1px 3px rgba(0,0,0,0.3);
+        --shadow-lg: 0 4px 16px rgba(0,0,0,0.4);
+        color-scheme: dark;
+      }
+    }
+
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font-body);
+      padding: 0 16px;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    .header {
+      position: sticky; top: 0;
+      background: var(--bg); z-index: 5;
+      padding: 16px 0 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .header-row {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; flex-wrap: wrap;
+    }
+    .header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo-icon {
+      width: 32px; height: 32px;
+      background: var(--accent); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-family: var(--font-mono); font-size: 9px; font-weight: 700;
+      letter-spacing: 0.5px; line-height: 1;
+    }
+    .logo h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+    .logo h1 span { color: var(--fg-muted); font-weight: 400; font-size: 14px; margin-left: 6px; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border: none; border-radius: var(--radius-sm);
+      font-family: var(--font-body); font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-ghost { background: transparent; color: var(--fg-muted); border: 1px solid var(--border); }
+    .btn-ghost:hover { background: var(--accent-light); color: var(--accent); }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+    .btn-danger { background: var(--red); color: #fff; }
+    .btn-danger:hover { opacity: 0.9; }
+
+    /* Who-am-I chip */
+    .user-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 13px; border: 1px solid var(--border); border-radius: 20px;
+      background: var(--surface); font-size: 13px; font-weight: 600;
+      color: var(--fg); cursor: pointer; transition: border 0.15s, color 0.15s;
+    }
+    .user-chip small { font-size: 11px; color: var(--fg-muted); font-weight: 400; }
+    .user-chip:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* Identity screen */
+    .identity { max-width: 420px; margin: 70px auto; text-align: center; }
+    .identity h2 { font-size: 22px; margin: 14px 0 6px; }
+    .identity p { color: var(--fg-muted); margin-bottom: 24px; font-size: 14px; }
+    .identity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+    .identity-btn {
+      padding: 18px 14px; border: 1px solid var(--border); border-radius: var(--radius);
+      background: var(--surface); font-family: var(--font-body); font-size: 15px;
+      font-weight: 600; color: var(--fg); cursor: pointer; transition: all 0.15s;
+    }
+    .identity-btn:hover { border-color: var(--accent); background: var(--accent-light); color: var(--accent); }
+    .identity-other { display: flex; gap: 8px; }
+    .identity-other input {
+      flex: 1; padding: 10px 12px; border: 1px solid var(--border);
+      border-radius: var(--radius-sm); font-family: var(--font-body); font-size: 14px;
+      background: var(--surface); color: var(--fg); outline: none;
+    }
+    .identity-other input:focus { border-color: var(--accent); }
+    .identity-note { font-size: 12px; color: var(--fg-muted); margin-top: 20px; }
+
+    .toolbar {
+      display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+      padding: 12px 0;
+    }
+    .search-wrap { position: relative; flex: 1; min-width: 180px; }
+    .search-wrap::before {
+      content: "⌕"; position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+      color: var(--fg-muted); font-size: 15px; pointer-events: none;
+    }
+    .search-box {
+      width: 100%;
+      padding: 8px 12px 8px 34px;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      font-family: var(--font-body); font-size: 14px;
+      background: var(--surface); color: var(--fg); outline: none;
+    }
+    .search-box:focus { border-color: var(--accent); }
+    select.filter-select {
+      padding: 8px 12px; border: 1px solid var(--border);
+      border-radius: var(--radius-sm); font-family: var(--font-body); font-size: 13px;
+      background: var(--surface); color: var(--fg); cursor: pointer; outline: none;
+    }
+
+    /* Action Needed Banner */
+    .action-banner { margin: 16px 0 12px; border-radius: var(--radius); overflow: hidden; }
+    .action-banner-header {
+      padding: 10px 16px; font-size: 13px; font-weight: 700;
+      letter-spacing: 0.5px; text-transform: uppercase;
+      font-family: var(--font-mono);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .action-overdue .action-banner-header { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); border-bottom: none; border-radius: var(--radius) var(--radius) 0 0; }
+    .action-today .action-banner-header { background: var(--yellow-bg); color: var(--yellow); border: 1px solid var(--yellow-border); border-bottom: none; border-radius: var(--radius) var(--radius) 0 0; }
+    .action-upcoming .action-banner-header { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); border-bottom: none; border-radius: var(--radius) var(--radius) 0 0; }
+    .action-items { display: flex; flex-direction: column; }
+    .action-overdue .action-items { border: 1px solid var(--red-border); border-top: none; border-radius: 0 0 var(--radius) var(--radius); }
+    .action-today .action-items { border: 1px solid var(--yellow-border); border-top: none; border-radius: 0 0 var(--radius) var(--radius); }
+    .action-upcoming .action-items { border: 1px solid var(--green-border); border-top: none; border-radius: 0 0 var(--radius) var(--radius); }
+    .action-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 16px; background: var(--surface);
+      cursor: pointer; transition: background 0.1s; font-size: 14px;
+    }
+    .action-item:hover { background: var(--accent-light); }
+    .action-item + .action-item { border-top: 1px solid var(--border); }
+    .action-item .name { font-weight: 600; min-width: 0; }
+    .action-item .type-badge {
+      font-size: 11px; font-weight: 600; padding: 2px 8px;
+      border-radius: 20px; white-space: nowrap; letter-spacing: 0.3px;
+    }
+    .type-we { background: var(--accent-light); color: var(--accent); }
+    .type-client { background: var(--yellow-bg); color: var(--yellow); border: 1px solid var(--yellow-border); }
+    .type-meeting { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+    .action-item .date-info { color: var(--fg-muted); font-size: 13px; margin-left: auto; white-space: nowrap; }
+    .action-item .notes-preview { color: var(--fg-muted); font-size: 13px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* Stats */
+    .stats-row {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 8px; margin-bottom: 16px;
+    }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 12px 14px; text-align: center;
+    }
+    .stat-card .num { font-size: 24px; font-weight: 700; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+    .stat-card .label { font-size: 11px; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+    /* Table */
+    .table-wrap {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow-x: auto; box-shadow: var(--shadow);
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th {
+      text-align: left; padding: 10px 14px;
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--fg-muted);
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap; cursor: pointer; user-select: none;
+    }
+    th:hover { color: var(--accent); }
+    td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--accent-light); }
+    tr { cursor: pointer; transition: background 0.1s; }
+
+    .status-pill {
+      display: inline-block; padding: 3px 10px; border-radius: 20px;
+      font-size: 12px; font-weight: 600; white-space: nowrap;
+    }
+    .status-new { background: var(--accent-light); color: var(--accent); }
+    .status-contacted { background: #ede9fe; color: #7c3aed; }
+    .status-quote { background: #fef3c7; color: #b45309; }
+    .status-followup { background: #dbeafe; color: #2563eb; }
+    .status-won { background: var(--green-bg); color: var(--won); }
+    .status-lost { background: #f3f4f6; color: var(--lost); }
+
+    @media (prefers-color-scheme: dark) {
+      .status-contacted { background: #1e1538; color: #a78bfa; }
+      .status-quote { background: #2a2010; color: #fbbf24; }
+      .status-followup { background: #15203a; color: #60a5fa; }
+      .status-lost { background: #1f2028; color: #9ca3af; }
+    }
+
+    /* Stage dropdown (detail view) — looks like the pill, behaves like a select */
+    .status-edit { position: relative; display: inline-flex; align-items: center; }
+    .status-edit::after {
+      content: "▾"; position: absolute; right: 9px; pointer-events: none;
+      font-size: 11px; opacity: 0.75;
+    }
+    .status-select {
+      appearance: none; -webkit-appearance: none;
+      padding: 4px 24px 4px 12px; border-radius: 20px;
+      font-family: var(--font-body); font-size: 13px; font-weight: 600;
+      border: 1px solid transparent; cursor: pointer; outline: none;
+    }
+    .status-select:hover, .status-select:focus { border-color: currentColor; }
+    .status-select:disabled { opacity: 0.6; cursor: wait; }
+
+    .urgency-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; flex-shrink: 0; }
+    .urgency-red { background: var(--red); }
+    .urgency-yellow { background: var(--yellow); }
+    .urgency-green { background: var(--green); }
+    .urgency-gray { background: var(--fg-muted); opacity: 0.4; }
+    .followup-cell { display: flex; align-items: center; gap: 4px; font-size: 13px; font-variant-numeric: tabular-nums; }
+
+    .last-act { font-size: 13px; max-width: 220px; }
+    .last-act .la-text { color: var(--fg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .last-act .la-meta { font-size: 11px; color: var(--fg-muted); font-family: var(--font-mono); margin-top: 1px; }
+    .last-act.stale .la-meta { color: var(--red); }
+
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--fg-muted); }
+    .empty-state .icon { font-size: 40px; margin-bottom: 12px; opacity: 0.5; }
+    .empty-state p { font-size: 15px; margin-bottom: 16px; }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+      z-index: 100; display: flex; align-items: center; justify-content: center; padding: 16px;
+    }
+    .modal {
+      background: var(--surface); border-radius: var(--radius);
+      box-shadow: var(--shadow-lg); width: 100%; max-width: 560px;
+      max-height: 90vh; overflow-y: auto; padding: 24px;
+    }
+    .modal.wide { max-width: 680px; }
+    .modal h2 {
+      font-size: 18px; font-weight: 700; margin-bottom: 20px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .modal h2 .close-btn {
+      background: none; border: none; font-size: 22px; cursor: pointer;
+      color: var(--fg-muted); padding: 4px;
+    }
+    .modal h2 .close-btn:hover { color: var(--fg); }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-group label {
+      font-size: 12px; font-weight: 600; color: var(--fg-muted);
+      text-transform: uppercase; letter-spacing: 0.3px;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+      font-family: var(--font-body); font-size: 14px;
+      background: var(--bg); color: var(--fg); outline: none; transition: border 0.15s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent); }
+    .form-group textarea { resize: vertical; min-height: 70px; }
+    .form-actions {
+      display: flex; gap: 8px; justify-content: flex-end;
+      margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);
+    }
+
+    .section-label {
+      font-size: 12px; font-weight: 700; color: var(--accent);
+      text-transform: uppercase; letter-spacing: 0.5px;
+      margin: 18px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    }
+    .section-label .count { color: var(--fg-muted); font-weight: 400; }
+    .detail-field { margin-bottom: 14px; }
+    .detail-field .label {
+      font-size: 11px; font-weight: 700; color: var(--fg-muted);
+      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px;
+    }
+    .detail-field .value { font-size: 15px; }
+    .detail-actions {
+      display: flex; gap: 8px; flex-wrap: wrap;
+      margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border);
+    }
+    .confirm-delete {
+      background: var(--red-bg); border: 1px solid var(--red-border);
+      border-radius: var(--radius-sm); padding: 12px; margin-top: 12px;
+    }
+    .confirm-delete p { font-size: 13px; margin-bottom: 8px; color: var(--red); }
+
+    /* Pinned next follow-up */
+    .fu-pinned {
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 12px 14px; background: var(--bg);
+    }
+    .fu-pinned.is-overdue { background: var(--red-bg); border-color: var(--red-border); }
+    .fu-pinned.is-today { background: var(--yellow-bg); border-color: var(--yellow-border); }
+    .fu-pinned-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-weight: 700; font-size: 14px; }
+    .fu-pinned-type { font-size: 11px; font-weight: 600; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.4px; margin-top: 2px; }
+    .fu-pinned-notes { font-size: 13px; color: var(--fg-muted); margin-top: 4px; white-space: pre-wrap; }
+    .fu-current-marker {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px; padding: 2px 8px; border-radius: 20px;
+    }
+    .btn-done {
+      background: var(--green-bg); color: var(--green);
+      border: 1px solid var(--green-border);
+    }
+    .btn-done:hover { background: var(--green); color: #fff; }
+
+    /* Activity log */
+    .act-compose {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 12px; margin-bottom: 14px;
+    }
+    .act-compose-top { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+    .act-compose-top label { font-size: 11px; font-weight: 700; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.4px; }
+    .act-compose textarea {
+      width: 100%; padding: 9px 12px; border: 1px solid var(--border);
+      border-radius: var(--radius-sm); font-family: var(--font-body); font-size: 14px;
+      background: var(--surface); color: var(--fg); outline: none; resize: vertical; min-height: 54px;
+    }
+    .act-compose textarea:focus { border-color: var(--accent); }
+    .act-compose-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; }
+    .act-compose-hint { font-size: 11px; color: var(--fg-muted); }
+
+    .act-list { margin-top: 4px; }
+    .act-item {
+      display: flex; gap: 10px; padding: 9px 0;
+      border-bottom: 1px solid var(--border); font-size: 13px;
+    }
+    .act-item:last-child { border-bottom: none; }
+    .act-icon { flex-shrink: 0; width: 20px; text-align: center; font-size: 14px; line-height: 1.5; }
+    .act-body { flex: 1; min-width: 0; }
+    .act-text { font-weight: 600; color: var(--fg); }
+    .act-note { color: var(--fg-muted); margin-top: 2px; white-space: pre-wrap; word-break: break-word; }
+    .act-meta { font-size: 11px; color: var(--fg-muted); opacity: 0.8; margin-top: 3px; font-family: var(--font-mono); }
+    .act-empty { font-size: 13px; color: var(--fg-muted); padding: 10px 0; }
+    .act-more {
+      width: 100%; margin-top: 10px; padding: 8px;
+      background: transparent; border: 1px dashed var(--border); border-radius: var(--radius-sm);
+      color: var(--fg-muted); font-family: var(--font-body); font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+    .act-more:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* Team feed */
+    .feed-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+    .feed-day {
+      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+      color: var(--fg-muted); font-family: var(--font-mono);
+      margin: 16px 0 2px; padding-bottom: 4px; border-bottom: 1px solid var(--border);
+    }
+    .feed-item {
+      display: flex; gap: 10px; padding: 9px 6px; font-size: 13px;
+      border-bottom: 1px solid var(--border); cursor: pointer; border-radius: var(--radius-sm);
+    }
+    .feed-item:hover { background: var(--accent-light); }
+    .feed-lead { font-weight: 700; }
+    .feed-time { margin-left: auto; font-size: 11px; color: var(--fg-muted); font-family: var(--font-mono); white-space: nowrap; }
+
+    /* Setup screen */
+    .setup-screen {
+      max-width: 480px; margin: 80px auto; text-align: center;
+    }
+    .setup-screen h2 { font-size: 22px; margin: 16px 0 8px; }
+    .setup-screen p { color: var(--fg-muted); margin-bottom: 24px; }
+    .setup-screen code {
+      display: block; text-align: left; padding: 16px;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); font-size: 13px;
+      font-family: var(--font-mono); overflow-x: auto; margin-bottom: 16px;
+      white-space: pre;
+    }
+
+    @media (max-width: 600px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: repeat(3, 1fr); }
+      table { font-size: 13px; }
+      th, td { padding: 8px 10px; }
+      .header-row { flex-direction: column; align-items: stretch; }
+      .logo { justify-content: center; }
+      .header-actions { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="app">
+  <div class="empty-state">
+    <div class="icon">📋</div>
+    <p>Loading Lead Board...</p>
+  </div>
+</div>
+
+<!-- ============================================================
+     FIREBASE SDK — loaded from Google's CDN
+     ============================================================ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+(function() {
+  'use strict';
+
+  // ============================================================
+  //  🔧 PASTE YOUR FIREBASE CONFIG BELOW
+  //  (Replace the placeholder values with your own from Firebase Console)
+  // ============================================================
+  const firebaseConfig = {
+    apiKey: "AIzaSyCNzyi2gjVFaqXkQp6fcJBXJEIB1pSJZCg",
+    authDomain: "cosmic-cat-leads-board.firebaseapp.com",
+    projectId: "cosmic-cat-leads-board",
+    storageBucket: "cosmic-cat-leads-board.firebasestorage.app",
+    messagingSenderId: "338031320984",
+    appId: "1:338031320984:web:f539d1a0e3bbcf08c455ed"
+  };
+  // ============================================================
+
+  // Check if config is set
+  if (firebaseConfig.apiKey === "YOUR_API_KEY_HERE") {
+    document.getElementById('app').innerHTML = `
+      <div class="setup-screen">
+        <div style="font-size:48px;margin-bottom:8px">🐱</div>
+        <h2>Cosmic Cat Lead Board</h2>
+        <p>Almost there! Paste your Firebase config into <strong>index.html</strong> to get started.</p>
+        <code>// Look for this section near the top of the &lt;script&gt;:
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY_HERE",    ← replace these
+  authDomain: "...",
+  projectId: "...",
+  ...
+};</code>
+        <p style="font-size:13px">See the <strong>SETUP-GUIDE.txt</strong> file for step-by-step instructions.</p>
+      </div>`;
+    return;
+  }
+
+  // Init Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const FV = firebase.firestore.FieldValue;
+
+  const STATUSES = ['New','Contacted','Quote Sent','Follow-Up','Won','Lost'];
+  const SOURCES = ['Messenger','FB Page','Website','Referral','Other'];
+  const PACKAGES = ['₱5,990','₱8,690','₱8,990','₱9,990','₱15,900','₱17,900','Custom','Not Yet Decided'];
+  const FOLLOWUP_TYPES = ['We Follow Up','Client Requested','Meeting Set'];
+  const TEAM = ['Aljun','Gia','CSR','Unassigned'];
+
+  // Who is using this device
+  const USERS = ['Aljun','Gia','CSR','Agent'];
+  const USER_KEY = 'ccLeadBoardUser';
+
+  // Manual log entry types
+  const NOTE_TYPES = ['Called','Messaged','Client replied','Quote sent','Meeting','No answer','Payment received','Note'];
+  const NOTE_ICON = {
+    'Called':'📞','Messaged':'💬','Client replied':'📨','Quote sent':'📄',
+    'Meeting':'🤝','No answer':'📵','Payment received':'💰','Note':'📝'
+  };
+  const KIND_ICON = {
+    created:'✨', status:'🔄', assign:'👤', package:'🏷️', edit:'✏️',
+    followup_set:'📅', followup_done:'✅', note:'📝'
+  };
+
+  let leads = [];
+  let currentFilter = { status: '', source: '', search: '' };
+  let CURRENT_USER = readUser();
+  let openDetailId = null;
+  let forceDetailRefresh = false;
+  let expandedLog = {};
+
+  function readUser() {
+    try { return localStorage.getItem(USER_KEY) || ''; } catch (e) { return ''; }
+  }
+  function writeUser(name) {
+    try { localStorage.setItem(USER_KEY, name); } catch (e) { /* private mode — session only */ }
+    CURRENT_USER = name;
+    render();
+  }
+
+  function statusClass(s) {
+    return { 'New':'status-new','Contacted':'status-contacted','Quote Sent':'status-quote','Follow-Up':'status-followup','Won':'status-won','Lost':'status-lost' }[s] || '';
+  }
+
+  function urgency(lead) {
+    if (!lead.followUpDate || lead.status === 'Won' || lead.status === 'Lost') return 'none';
+    const today = new Date(); today.setHours(0,0,0,0);
+    const fDate = new Date(lead.followUpDate); fDate.setHours(0,0,0,0);
+    const diff = fDate - today;
+    if (diff < 0) return 'overdue';
+    if (diff === 0) return 'today';
+    if (diff <= 3 * 86400000) return 'upcoming';
+    return 'future';
+  }
+
+  function urgencyDotClass(u) {
+    return { overdue:'urgency-red', today:'urgency-yellow', upcoming:'urgency-green', future:'urgency-gray', none:'urgency-gray' }[u];
+  }
+
+  function followupTypeBadge(t) {
+    return { 'We Follow Up':'type-we', 'Client Requested':'type-client', 'Meeting Set':'type-meeting' }[t] || 'type-we';
+  }
+
+  function formatDate(d) {
+    if (!d) return '—';
+    return new Date(d).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  function formatStamp(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d)) return '';
+    return d.toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
+  }
+
+  function timeAgo(iso) {
+    if (!iso) return '';
+    const t = new Date(iso).getTime();
+    if (isNaN(t)) return '';
+    const mins = Math.floor((Date.now() - t) / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return mins + 'm ago';
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return hrs + 'h ago';
+    const days = Math.floor(hrs / 24);
+    if (days === 1) return 'yesterday';
+    if (days < 30) return days + 'd ago';
+    return formatDate(iso);
+  }
+
+  function dayLabel(iso) {
+    const d = new Date(iso);
+    if (isNaN(d)) return 'Earlier';
+    const a = new Date(); a.setHours(0,0,0,0);
+    const b = new Date(d); b.setHours(0,0,0,0);
+    const diff = Math.round((a - b) / 86400000);
+    if (diff === 0) return 'Today';
+    if (diff === 1) return 'Yesterday';
+    return d.toLocaleDateString('en-PH', { weekday: 'short', month: 'short', day: 'numeric' });
+  }
+
+  function esc(s) {
+    if (!s) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function truncate(s, n) {
+    s = String(s || '');
+    return s.length > n ? s.slice(0, n - 1) + '…' : s;
+  }
+
+  // ============================================================
+  //  ACTIVITY LOG
+  // ============================================================
+
+  function mkEntry(kind, text, extra) {
+    return Object.assign({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+      ts: new Date().toISOString(),
+      by: CURRENT_USER || 'Unknown',
+      kind: kind,
+      text: text
+    }, extra || {});
+  }
+
+  // Compare the saved lead against the submitted form and log what changed
+  function diffEntries(oldL, d) {
+    const out = [];
+    if (!oldL) {
+      out.push(mkEntry('created', 'Lead added to the board'));
+      if (d.followUpDate) {
+        out.push(mkEntry('followup_set', 'Follow-up set for ' + formatDate(d.followUpDate) +
+          (d.followUpTime ? ' at ' + d.followUpTime : '') + (d.followUpType ? ' · ' + d.followUpType : ''),
+          { note: d.followUpNotes || '' }));
+      }
+      return out;
+    }
+    if ((oldL.status || '') !== d.status) {
+      out.push(mkEntry('status', 'Status: ' + (oldL.status || '—') + ' → ' + d.status));
+    }
+    if ((oldL.assignedTo || '') !== d.assignedTo) {
+      out.push(mkEntry('assign', 'Assigned to ' + (d.assignedTo || '—')));
+    }
+    if ((oldL.packageInterest || '') !== d.packageInterest) {
+      out.push(mkEntry('package', 'Package interest: ' + (d.packageInterest || '—')));
+    }
+    if ((oldL.contactNumber || '') !== d.contactNumber) {
+      out.push(mkEntry('edit', 'Contact number ' + (oldL.contactNumber ? 'updated' : 'added')));
+    }
+    if ((oldL.source || '') !== d.source) {
+      out.push(mkEntry('edit', 'Source: ' + (d.source || '—')));
+    }
+    if ((oldL.description || '') !== d.description) {
+      out.push(mkEntry('edit', 'Details updated', { note: truncate(d.description, 120) }));
+    }
+    const oldFu = [oldL.followUpDate||'', oldL.followUpTime||'', oldL.followUpType||'', oldL.followUpNotes||''].join('|');
+    const newFu = [d.followUpDate||'', d.followUpTime||'', d.followUpType||'', d.followUpNotes||''].join('|');
+    if (oldFu !== newFu) {
+      if (d.followUpDate) {
+        out.push(mkEntry('followup_set', (oldL.followUpDate ? 'Follow-up moved to ' : 'Follow-up set for ') +
+          formatDate(d.followUpDate) + (d.followUpTime ? ' at ' + d.followUpTime : '') +
+          (d.followUpType ? ' · ' + d.followUpType : ''), { note: d.followUpNotes || '' }));
+      } else if (oldL.followUpDate) {
+        out.push(mkEntry('followup_set', 'Follow-up cleared'));
+      }
+    }
+    return out;
+  }
+
+  // Merge the activity array with the older followUpHistory records
+  function fullTimeline(l) {
+    const items = (l.activity || []).slice();
+    const logged = {};
+    items.forEach(a => { if (a.kind === 'followup_done' && a.fuDate) logged[a.fuDate] = true; });
+
+    (l.followUpHistory || []).forEach((h, i) => {
+      if (h.date && logged[h.date]) return; // already in the new log
+      const base = h.completedAt || h.date || '';
+      items.push({
+        id: 'legacy_' + i + '_' + base,
+        ts: base ? base + 'T00:00:00.000Z' : '',
+        by: '',
+        kind: 'followup_done',
+        text: 'Follow-up done · ' + (h.type || 'Follow Up') + ' (' + formatDate(h.date) + ')',
+        note: h.notes || '',
+        legacy: true
+      });
+    });
+
+    items.sort((a, b) => String(b.ts || '').localeCompare(String(a.ts || '')));
+    return items;
+  }
+
+  function entryIcon(a) {
+    if (a.kind === 'note') return NOTE_ICON[a.noteType] || '📝';
+    return KIND_ICON[a.kind] || '•';
+  }
+
+  function renderEntry(a) {
+    return `
+      <div class="act-item">
+        <span class="act-icon">${entryIcon(a)}</span>
+        <div class="act-body">
+          <div class="act-text">${esc(a.text)}</div>
+          ${a.note ? `<div class="act-note">${esc(a.note)}</div>` : ''}
+          <div class="act-meta">${a.by ? esc(a.by) + ' · ' : ''}${formatStamp(a.ts)}${a.ts ? ' · ' + timeAgo(a.ts) : ''}</div>
+        </div>
+      </div>`;
+  }
+
+  function renderActivityLog(l) {
+    const items = fullTimeline(l);
+    if (!items.length) {
+      return `<div class="act-empty">Nothing logged yet. Use the box above after every call or message.</div>`;
+    }
+    const expanded = !!expandedLog[l.id];
+    const shown = expanded ? items : items.slice(0, 8);
+    return `<div class="act-list">${shown.map(renderEntry).join('')}</div>` +
+      (items.length > 8 && !expanded
+        ? `<button class="act-more" onclick="window._expandLog('${l.id}')">Show all ${items.length} entries</button>`
+        : '');
+  }
+
+  function composeBox(l) {
+    return `
+      <div class="act-compose">
+        <div class="act-compose-top">
+          <label for="log_type_${l.id}">What happened</label>
+          <select class="filter-select" id="log_type_${l.id}">
+            ${NOTE_TYPES.map(t => `<option value="${t}">${NOTE_ICON[t]}  ${t}</option>`).join('')}
+          </select>
+        </div>
+        <textarea id="log_note_${l.id}" placeholder="Short detail — e.g. asked for the ₱8,990 package, sending mockups Monday"></textarea>
+        <div class="act-compose-actions">
+          <span class="act-compose-hint">Logging as <strong>${esc(CURRENT_USER)}</strong></span>
+          <button class="btn btn-primary btn-sm" id="log_save_${l.id}">+ Add to log</button>
+        </div>
+      </div>`;
+  }
+
+  async function saveNote(leadId) {
+    const typeEl = document.getElementById('log_type_' + leadId);
+    const noteEl = document.getElementById('log_note_' + leadId);
+    const btn = document.getElementById('log_save_' + leadId);
+    if (!typeEl || !noteEl) return;
+    const noteType = typeEl.value;
+    const note = noteEl.value.trim();
+    if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+    const entry = mkEntry('note', noteType, { noteType: noteType, note: note });
+    try {
+      await db.collection('leads').doc(leadId).set({
+        activity: FV.arrayUnion(entry),
+        lastUpdated: new Date().toISOString()
+      }, { merge: true });
+      noteEl.value = '';
+      forceDetailRefresh = true;
+      if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    } catch (err) {
+      console.error('Log failed', err);
+      alert('Could not save that log entry. Please try again.');
+      if (btn) { btn.disabled = false; btn.textContent = '+ Add to log'; }
+    }
+  }
+
+  // Everything logged across every lead, newest first
+  function allActivity(limit) {
+    const out = [];
+    leads.forEach(l => {
+      fullTimeline(l).forEach(a => {
+        out.push(Object.assign({}, a, { leadId: l.id, leadName: l.fbName }));
+      });
+    });
+    out.sort((a, b) => String(b.ts || '').localeCompare(String(a.ts || '')));
+    return out.slice(0, limit || 100);
+  }
+
+  function showFeed() {
+    const items = allActivity(100);
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+
+    let html = '';
+    if (!items.length) {
+      html = `<div class="act-empty">No activity logged yet.</div>`;
+    } else {
+      let lastDay = '';
+      items.forEach(a => {
+        const d = dayLabel(a.ts);
+        if (d !== lastDay) { html += `<div class="feed-day">${esc(d)}</div>`; lastDay = d; }
+        html += `
+          <div class="feed-item" onclick="window._feedJump('${a.leadId}')">
+            <span class="act-icon">${entryIcon(a)}</span>
+            <div class="act-body">
+              <div><span class="feed-lead">${esc(a.leadName || 'Lead')}</span> — ${esc(a.text)}</div>
+              ${a.note ? `<div class="act-note">${esc(truncate(a.note, 150))}</div>` : ''}
+              ${a.by ? `<div class="act-meta">${esc(a.by)}</div>` : ''}
+            </div>
+            <span class="feed-time">${formatStamp(a.ts)}</span>
+          </div>`;
+      });
+    }
+
+    overlay.innerHTML = `<div class="modal wide">
+      <h2>Team Activity <button class="close-btn" onclick="this.closest('.modal-overlay').remove()">&times;</button></h2>
+      <p style="font-size:13px;color:var(--fg-muted);margin-top:-12px;margin-bottom:12px">
+        Everything the team logged, newest first. Tap any line to open that lead.
+      </p>
+      ${html}
+    </div>`;
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  }
+
+  // ============================================================
+  //  BOARD
+  // ============================================================
+
+  function filtered() {
+    return leads.filter(l => {
+      if (currentFilter.status && l.status !== currentFilter.status) return false;
+      if (currentFilter.source && l.source !== currentFilter.source) return false;
+      if (currentFilter.search) {
+        const q = currentFilter.search.toLowerCase();
+        return (l.fbName||'').toLowerCase().includes(q) ||
+               (l.description||'').toLowerCase().includes(q) ||
+               (l.contactNumber||'').toLowerCase().includes(q);
+      }
+      return true;
+    });
+  }
+
+  function actionLeads() {
+    return leads.filter(l => l.followUpDate && l.status !== 'Won' && l.status !== 'Lost')
+      .map(l => ({ ...l, _urgency: urgency(l) }))
+      .filter(l => ['overdue','today','upcoming'].includes(l._urgency))
+      .sort((a, b) => new Date(a.followUpDate) - new Date(b.followUpDate));
+  }
+
+  function stats() {
+    const active = leads.filter(l => l.status !== 'Won' && l.status !== 'Lost');
+    const overdue = leads.filter(l => urgency(l) === 'overdue');
+    const won = leads.filter(l => l.status === 'Won');
+    const today = new Date(); today.setHours(0,0,0,0);
+    let loggedToday = 0;
+    leads.forEach(l => {
+      (l.activity || []).forEach(a => {
+        const t = new Date(a.ts);
+        if (!isNaN(t) && t >= today) loggedToday++;
+      });
+    });
+    return { total: leads.length, active: active.length, overdue: overdue.length, won: won.length, loggedToday: loggedToday };
+  }
+
+  function identityScreen() {
+    return `
+      <div class="identity">
+        <div class="logo-icon" style="width:48px;height:48px;font-size:13px;margin:0 auto">CC</div>
+        <h2>Who's on this device?</h2>
+        <p>Pick your name once. Everything you log gets stamped with it, so the team can see who did what.</p>
+        <div class="identity-grid">
+          ${USERS.map(u => `<button class="identity-btn" onclick="window._setUser('${esc(u)}')">${esc(u)}</button>`).join('')}
+        </div>
+        <div class="identity-other">
+          <input type="text" id="otherUser" placeholder="Someone else — type a name" onkeydown="if(event.key==='Enter')window._setUserFromInput()">
+          <button class="btn btn-ghost" onclick="window._setUserFromInput()">Use this</button>
+        </div>
+        <p class="identity-note">Saved on this device only. You can switch any time from the top of the board.</p>
+      </div>`;
+  }
+
+  function render() {
+    const app = document.getElementById('app');
+
+    if (!CURRENT_USER) {
+      app.innerHTML = identityScreen();
+      return;
+    }
+
+    const s = stats();
+    const actions = actionLeads();
+    const rows = filtered();
+
+    const overdueItems = actions.filter(a => a._urgency === 'overdue');
+    const todayItems = actions.filter(a => a._urgency === 'today');
+    const upcomingItems = actions.filter(a => a._urgency === 'upcoming');
+
+    function actionSection(items, cls, label) {
+      if (!items.length) return '';
+      return `<div class="action-banner ${cls}">
+        <div class="action-banner-header">${label} (${items.length})</div>
+        <div class="action-items">${items.map(l => `
+          <div class="action-item" onclick="window._viewLead('${l.id}')">
+            <span class="name">${esc(l.fbName)}</span>
+            <span class="type-badge ${followupTypeBadge(l.followUpType)}">${esc(l.followUpType || 'Follow Up')}</span>
+            <span class="notes-preview">${esc(l.followUpNotes || l.description || '')}</span>
+            <span class="date-info">${formatDate(l.followUpDate)}${l.followUpTime ? ' · ' + l.followUpTime : ''} · ${relativeDate(l.followUpDate)}</span>
+            <button class="btn btn-done btn-sm" onclick="event.stopPropagation(); window._quickDone('${l.id}')" title="Mark follow-up done">✓</button>
+          </div>`).join('')}
+        </div>
+      </div>`;
+    }
+
+    app.innerHTML = `
+      <div class="header">
+        <div class="header-row">
+          <div class="logo">
+            <div class="logo-icon">CC</div>
+            <h1>Lead Board <span>Cosmic Cat</span></h1>
+          </div>
+          <div class="header-actions">
+            <div class="user-chip" onclick="window._switchUser()" title="Switch user">👤 ${esc(CURRENT_USER)} <small>switch</small></div>
+            <button class="btn btn-ghost" onclick="window._showFeed()">📋 Activity</button>
+            <button class="btn btn-primary" onclick="window._openAdd()">+ Add Lead</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-row" style="margin-top:16px">
+        <div class="stat-card"><div class="num">${s.total}</div><div class="label">Total Leads</div></div>
+        <div class="stat-card"><div class="num">${s.active}</div><div class="label">Active</div></div>
+        <div class="stat-card"><div class="num" style="color:var(--red)">${s.overdue}</div><div class="label">Overdue</div></div>
+        <div class="stat-card"><div class="num" style="color:var(--won)">${s.won}</div><div class="label">Won</div></div>
+        <div class="stat-card"><div class="num" style="color:var(--accent)">${s.loggedToday}</div><div class="label">Logged Today</div></div>
+      </div>
+
+      ${actionSection(overdueItems, 'action-overdue', '🔴 Overdue')}
+      ${actionSection(todayItems, 'action-today', '🟡 Due Today')}
+      ${actionSection(upcomingItems, 'action-upcoming', '🟢 Upcoming')}
+
+      <div class="toolbar">
+        <div class="search-wrap">
+          <input class="search-box" type="text" id="searchInput" placeholder="Search by name or details..." value="${esc(currentFilter.search)}" oninput="window._onSearch(this.value)">
+        </div>
+        <select class="filter-select" id="filterStatus" onchange="window._onFilterStatus(this.value)">
+          <option value="">All Statuses</option>
+          ${STATUSES.map(st => `<option value="${st}" ${currentFilter.status===st?'selected':''}>${st}</option>`).join('')}
+        </select>
+        <select class="filter-select" id="filterSource" onchange="window._onFilterSource(this.value)">
+          <option value="">All Sources</option>
+          ${SOURCES.map(so => `<option value="${so}" ${currentFilter.source===so?'selected':''}>${so}</option>`).join('')}
+        </select>
+      </div>
+
+      ${rows.length ? `
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Facebook Name</th>
+            <th>Status</th>
+            <th>Package</th>
+            <th>Source</th>
+            <th>Assigned</th>
+            <th>Follow-Up</th>
+            <th>Last Activity</th>
+          </tr></thead>
+          <tbody>
+            ${rows.map(l => {
+              const u = urgency(l);
+              const tl = fullTimeline(l);
+              const last = tl[0];
+              const stale = last && last.ts && (Date.now() - new Date(last.ts).getTime()) > 7 * 86400000;
+              const logCount = tl.length;
+              return `<tr onclick="window._viewLead('${l.id}')">
+                <td style="font-weight:600">${esc(l.fbName)}</td>
+                <td><span class="status-pill ${statusClass(l.status)}">${l.status}</span></td>
+                <td>${esc(l.packageInterest || '—')}</td>
+                <td>${esc(l.source || '—')}</td>
+                <td>${esc(l.assignedTo || '—')}</td>
+                <td><div class="followup-cell"><span class="urgency-dot ${urgencyDotClass(u)}"></span>${l.followUpDate ? formatDate(l.followUpDate) : '—'}</div></td>
+                <td>
+                  ${last ? `<div class="last-act ${stale && l.status!=='Won' && l.status!=='Lost' ? 'stale' : ''}">
+                    <div class="la-text">${entryIcon(last)} ${esc(truncate(last.note || last.text, 30))}</div>
+                    <div class="la-meta">${timeAgo(last.ts)}${last.by ? ' · ' + esc(last.by) : ''} · ${logCount} log${logCount===1?'':'s'}</div>
+                  </div>` : `<span style="color:var(--fg-muted);font-size:13px">—</span>`}
+                </td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>` : `
+      <div class="empty-state">
+        <div class="icon">📋</div>
+        <p>No leads yet. Add your first lead to get started.</p>
+        <button class="btn btn-primary" onclick="window._openAdd()">+ Add Lead</button>
+      </div>`}
+    `;
+  }
+
+  function relativeDate(d) {
+    if (!d) return '';
+    const today = new Date(); today.setHours(0,0,0,0);
+    const fDate = new Date(d); fDate.setHours(0,0,0,0);
+    const diff = Math.round((fDate - today) / 86400000);
+    if (diff < -1) return Math.abs(diff) + ' days overdue';
+    if (diff === -1) return 'Yesterday';
+    if (diff === 0) return 'Today';
+    if (diff === 1) return 'Tomorrow';
+    return 'In ' + diff + ' days';
+  }
+
+  // Modal: Add / Edit
+  function showModal(lead) {
+    const isEdit = !!lead;
+    const l = lead || {};
+    const isCustomPkg = l.packageInterest && !PACKAGES.includes(l.packageInterest);
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `<div class="modal">
+      <h2>${isEdit ? 'Edit Lead' : 'Add New Lead'} <button class="close-btn" onclick="this.closest('.modal-overlay').remove()">&times;</button></h2>
+      <form id="leadForm">
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Facebook Name *</label>
+            <input type="text" id="f_fbName" value="${esc(l.fbName||'')}" required>
+          </div>
+          <div class="form-group">
+            <label>Contact Number</label>
+            <input type="text" id="f_contact" value="${esc(l.contactNumber||'')}">
+          </div>
+          <div class="form-group">
+            <label>Source</label>
+            <select id="f_source">
+              ${SOURCES.map(s => `<option value="${s}" ${l.source===s?'selected':''}>${s}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Package Interest</label>
+            <select id="f_package" onchange="var ci=document.getElementById('f_customPkg'); if(this.value==='Custom'){ci.hidden=false;ci.focus();}else{ci.hidden=true;ci.value='';}">
+              ${PACKAGES.map(p => `<option value="${p}" ${l.packageInterest===p || (isCustomPkg && p==='Custom')?'selected':''}>${p}</option>`).join('')}
+            </select>
+            <input type="text" id="f_customPkg" placeholder="Enter custom amount" ${isCustomPkg ? 'value="'+esc(l.packageInterest)+'"' : 'hidden'} style="margin-top:6px">
+          </div>
+          <div class="form-group">
+            <label>Assigned To</label>
+            <select id="f_assigned">
+              ${TEAM.map(t => `<option value="${t}" ${l.assignedTo===t?'selected':''}>${t}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="f_status">
+              ${STATUSES.map(s => `<option value="${s}" ${l.status===s?'selected':''}>${s}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-group full">
+            <label>Description / Details</label>
+            <textarea id="f_desc" rows="3">${esc(l.description||'')}</textarea>
+          </div>
+
+          <div class="form-group full"><div class="section-label">Follow-Up</div></div>
+          <div class="form-group">
+            <label>Follow-Up Type</label>
+            <select id="f_fuType">
+              <option value="">None</option>
+              ${FOLLOWUP_TYPES.map(t => `<option value="${t}" ${l.followUpType===t?'selected':''}>${t}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Follow-Up Date</label>
+            <input type="date" id="f_fuDate" value="${l.followUpDate||''}">
+          </div>
+          <div class="form-group">
+            <label>Follow-Up Time</label>
+            <input type="time" id="f_fuTime" value="${l.followUpTime||''}">
+          </div>
+          <div class="form-group full">
+            <label>Follow-Up Notes</label>
+            <textarea id="f_fuNotes" rows="2">${esc(l.followUpNotes||'')}</textarea>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+          <button type="submit" class="btn btn-primary">${isEdit ? 'Save Changes' : 'Add Lead'}</button>
+        </div>
+      </form>
+    </div>`;
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+
+    document.getElementById('leadForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const pkg = document.getElementById('f_package').value;
+      const data = {
+        fbName: document.getElementById('f_fbName').value.trim(),
+        contactNumber: document.getElementById('f_contact').value.trim(),
+        source: document.getElementById('f_source').value,
+        packageInterest: pkg === 'Custom' ? (document.getElementById('f_customPkg').value.trim() || 'Custom') : pkg,
+        assignedTo: document.getElementById('f_assigned').value,
+        status: document.getElementById('f_status').value,
+        description: document.getElementById('f_desc').value.trim(),
+        followUpType: document.getElementById('f_fuType').value,
+        followUpDate: document.getElementById('f_fuDate').value,
+        followUpTime: document.getElementById('f_fuTime').value,
+        followUpNotes: document.getElementById('f_fuNotes').value.trim(),
+        dateAdded: l.dateAdded || new Date().toISOString().slice(0,10),
+        lastUpdated: new Date().toISOString(),
+      };
+      if (!data.fbName) return;
+      try {
+        if (isEdit) {
+          const entries = diffEntries(l, data);
+          const payload = Object.assign({}, data);
+          if (entries.length) payload.activity = FV.arrayUnion(...entries);
+          // merge:true so the activity log and follow-up history are never clobbered
+          await db.collection('leads').doc(l.id).set(payload, { merge: true });
+        } else {
+          data.followUpHistory = [];
+          data.activity = diffEntries(null, data);
+          await db.collection('leads').add(data);
+        }
+        overlay.remove();
+      } catch (err) {
+        console.error('Save failed', err);
+        alert('Save failed. Please try again.');
+      }
+    });
+  }
+
+  // Detail view
+  function showDetail(id) {
+    const l = leads.find(x => x.id === id);
+    if (!l) return;
+    const u = urgency(l);
+    const hasCurrentFollowUp = !!l.followUpDate;
+    const timeline = fullTimeline(l);
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.dataset.detail = id;
+    openDetailId = id;
+
+    overlay.innerHTML = `<div class="modal">
+      <h2>${esc(l.fbName)} <button class="close-btn" onclick="this.closest('.modal-overlay').remove()">&times;</button></h2>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+        <span class="status-edit ${statusClass(l.status)}" style="background:none">
+          <select class="status-select ${statusClass(l.status)}" id="detailStatus_${l.id}" title="Change stage — moves both ways">
+            ${STATUSES.map(s => `<option value="${s}" ${l.status === s ? 'selected' : ''}>${s}</option>`).join('')}
+          </select>
+        </span>
+        ${l.followUpDate ? `<span class="urgency-dot ${urgencyDotClass(u)}"></span><span style="font-size:13px;color:var(--fg-muted)">${relativeDate(l.followUpDate)}</span>` : ''}
+        <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="this.closest('.modal-overlay').remove(); window._editLead('${l.id}')">✏️ Edit</button>
+      </div>
+      <div class="detail-field"><div class="label">Contact Number</div><div class="value">${esc(l.contactNumber || 'Not provided')}</div></div>
+      <div class="detail-field"><div class="label">Source</div><div class="value">${esc(l.source)}</div></div>
+      <div class="detail-field"><div class="label">Package Interest</div><div class="value">${esc(l.packageInterest)}</div></div>
+      <div class="detail-field"><div class="label">Assigned To</div><div class="value">${esc(l.assignedTo)}</div></div>
+      <div class="detail-field"><div class="label">Description / Details</div><div class="value">${esc(l.description || 'No details')}</div></div>
+
+      <div class="section-label">Next Follow-Up</div>
+      ${hasCurrentFollowUp ? `
+        <div class="fu-pinned ${u === 'overdue' ? 'is-overdue' : u === 'today' ? 'is-today' : ''}">
+          <div class="fu-pinned-head">
+            <span class="urgency-dot ${urgencyDotClass(u)}" style="margin:0;width:10px;height:10px"></span>
+            ${formatDate(l.followUpDate)}${l.followUpTime ? ' at ' + esc(l.followUpTime) : ''}
+            <span class="fu-current-marker" style="background:${u === 'overdue' ? 'var(--red-bg);color:var(--red)' : u === 'today' ? 'var(--yellow-bg);color:var(--yellow)' : 'var(--accent-light);color:var(--accent)'}">
+              ${relativeDate(l.followUpDate)}
+            </span>
+          </div>
+          <div class="fu-pinned-type">${esc(l.followUpType || 'Follow Up')}</div>
+          ${l.followUpNotes ? `<div class="fu-pinned-notes">${esc(l.followUpNotes)}</div>` : ''}
+          <div style="margin-top:10px">
+            <button class="btn btn-done btn-sm" id="markDoneBtn_${l.id}">✓ Mark Done</button>
+          </div>
+        </div>
+      ` : `
+        <div style="color:var(--fg-muted);font-size:13px;padding:4px 0 8px">
+          No follow-up scheduled.
+          <button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="this.closest('.modal-overlay').remove(); window._editLead('${l.id}')">Schedule One</button>
+        </div>
+      `}
+
+      <div id="nextFollowUpArea_${l.id}"></div>
+
+      <div class="section-label">Activity Log <span class="count">${timeline.length} entr${timeline.length === 1 ? 'y' : 'ies'}</span></div>
+      ${composeBox(l)}
+      ${renderActivityLog(l)}
+
+      <div style="font-size:12px;color:var(--fg-muted);margin-top:14px">Added ${formatDate(l.dateAdded)}</div>
+
+      <div class="detail-actions">
+        <button class="btn btn-ghost btn-sm" onclick="this.closest('.modal-overlay').remove(); window._editLead('${l.id}')">Edit</button>
+        <button class="btn btn-danger btn-sm" id="deleteBtn_${l.id}">Delete</button>
+      </div>
+      <div class="confirm-delete" id="confirmDel_${l.id}" hidden>
+        <p>Are you sure? This cannot be undone.</p>
+        <button class="btn btn-danger btn-sm" onclick="window._deleteLead('${l.id}')">Yes, Delete</button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('confirmDel_${l.id}').hidden=true">Cancel</button>
+      </div>
+    </div>`;
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+
+    document.getElementById('deleteBtn_' + l.id).addEventListener('click', () => {
+      document.getElementById('confirmDel_' + l.id).hidden = false;
+    });
+
+    // Stage dropdown — moves in both directions, logs every move
+    const stageSel = document.getElementById('detailStatus_' + l.id);
+    if (stageSel) {
+      stageSel.addEventListener('change', async () => {
+        const next = stageSel.value;
+        if (next === l.status) return;
+        stageSel.disabled = true;
+        try {
+          await db.collection('leads').doc(l.id).set({
+            status: next,
+            lastUpdated: new Date().toISOString(),
+            activity: FV.arrayUnion(mkEntry('status', 'Status: ' + (l.status || '—') + ' → ' + next))
+          }, { merge: true });
+          forceDetailRefresh = true;
+          stageSel.blur();
+        } catch (err) {
+          console.error('Stage change failed', err);
+          alert('Could not change the stage. Please try again.');
+          stageSel.disabled = false;
+          stageSel.value = l.status;
+        }
+      });
+    }
+
+    // Manual log entry
+    const logBtn = document.getElementById('log_save_' + l.id);
+    if (logBtn) logBtn.addEventListener('click', () => saveNote(l.id));
+    const logBox = document.getElementById('log_note_' + l.id);
+    if (logBox) logBox.addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); saveNote(l.id); }
+    });
+
+    // Mark Done button handler
+    const markDoneBtn = document.getElementById('markDoneBtn_' + l.id);
+    if (markDoneBtn) {
+      markDoneBtn.addEventListener('click', () => {
+        markDoneBtn.disabled = true;
+        markDoneBtn.textContent = '✓ Done!';
+        const area = document.getElementById('nextFollowUpArea_' + l.id);
+        area.innerHTML = `
+          <div class="next-followup-prompt" style="background:var(--accent-light);border:1px solid var(--accent);border-radius:var(--radius-sm);padding:14px;margin-top:12px">
+            <h4 style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.3px">Schedule Next Follow-Up?</h4>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Follow-Up Type</label>
+                <select id="nf_type_${l.id}">
+                  <option value="">None (skip)</option>
+                  ${FOLLOWUP_TYPES.map(t => `<option value="${t}">${t}</option>`).join('')}
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Date</label>
+                <input type="date" id="nf_date_${l.id}">
+              </div>
+              <div class="form-group">
+                <label>Time</label>
+                <input type="time" id="nf_time_${l.id}">
+              </div>
+              <div class="form-group full">
+                <label>How did this follow-up go?</label>
+                <textarea id="nf_outcome_${l.id}" rows="2" placeholder="Goes into the activity log — e.g. called, asked for 2 more days"></textarea>
+              </div>
+              <div class="form-group full">
+                <label>Notes for the next follow-up</label>
+                <textarea id="nf_notes_${l.id}" rows="2" placeholder="What needs to happen next?"></textarea>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:12px">
+              <button class="btn btn-primary btn-sm" id="nf_save_${l.id}">Save & Complete</button>
+              <button class="btn btn-ghost btn-sm" id="nf_skip_${l.id}">Just Mark Done</button>
+            </div>
+          </div>`;
+
+        async function completeFollowUp(nextType, nextDate, nextTime, nextNotes, outcome) {
+          const entries = [
+            mkEntry('followup_done',
+              'Follow-up done · ' + (l.followUpType || 'Follow Up') + ' (' + formatDate(l.followUpDate) + ')',
+              { fuDate: l.followUpDate, note: outcome || l.followUpNotes || '' })
+          ];
+          if (nextDate) {
+            entries.push(mkEntry('followup_set',
+              'Next follow-up set for ' + formatDate(nextDate) + (nextTime ? ' at ' + nextTime : '') +
+              (nextType ? ' · ' + nextType : ''), { note: nextNotes || '' }));
+          }
+          const updateData = {
+            followUpHistory: FV.arrayUnion({
+              date: l.followUpDate,
+              time: l.followUpTime || '',
+              type: l.followUpType || '',
+              notes: l.followUpNotes || '',
+              completedAt: new Date().toISOString().slice(0,10),
+            }),
+            activity: FV.arrayUnion(...entries),
+            followUpType: nextType || '',
+            followUpDate: nextDate || '',
+            followUpTime: nextTime || '',
+            followUpNotes: nextNotes || '',
+            lastUpdated: new Date().toISOString(),
+          };
+          try {
+            await db.collection('leads').doc(l.id).set(updateData, { merge: true });
+            overlay.remove();
+            openDetailId = null;
+          } catch (err) {
+            console.error('Update failed', err);
+            alert('Update failed. Please try again.');
+          }
+        }
+
+        document.getElementById('nf_save_' + l.id).addEventListener('click', () => {
+          completeFollowUp(
+            document.getElementById('nf_type_' + l.id).value,
+            document.getElementById('nf_date_' + l.id).value,
+            document.getElementById('nf_time_' + l.id).value,
+            document.getElementById('nf_notes_' + l.id).value.trim(),
+            document.getElementById('nf_outcome_' + l.id).value.trim()
+          );
+        });
+
+        document.getElementById('nf_skip_' + l.id).addEventListener('click', () => {
+          completeFollowUp('', '', '', '', document.getElementById('nf_outcome_' + l.id).value.trim());
+        });
+      });
+    }
+  }
+
+  // Re-render an open detail modal when Firestore pushes an update
+  function maybeRefreshDetail() {
+    if (!openDetailId) return;
+    const overlay = document.querySelector('.modal-overlay[data-detail="' + openDetailId + '"]');
+    if (!overlay) { openDetailId = null; return; }
+    const active = document.activeElement;
+    if (!forceDetailRefresh && active && overlay.contains(active)) return;
+    forceDetailRefresh = false;
+    const id = openDetailId;
+    const pane = overlay.querySelector('.modal');
+    const scroll = pane ? pane.scrollTop : 0;
+    overlay.remove();
+    showDetail(id);
+    const newPane = document.querySelector('.modal-overlay[data-detail="' + id + '"] .modal');
+    if (newPane) newPane.scrollTop = scroll;
+  }
+
+  // Global handlers
+  window._openAdd = () => showModal(null);
+  window._viewLead = id => showDetail(id);
+  window._editLead = id => { const l = leads.find(x => x.id === id); if (l) showModal(l); };
+  window._showFeed = () => showFeed();
+  window._expandLog = id => { expandedLog[id] = true; forceDetailRefresh = true; maybeRefreshDetail(); };
+  window._feedJump = id => {
+    document.querySelectorAll('.modal-overlay').forEach(o => o.remove());
+    showDetail(id);
+  };
+  window._setUser = name => writeUser(name);
+  window._setUserFromInput = () => {
+    const el = document.getElementById('otherUser');
+    const v = el ? el.value.trim() : '';
+    if (v) writeUser(v);
+  };
+  window._switchUser = () => {
+    try { localStorage.removeItem(USER_KEY); } catch (e) {}
+    CURRENT_USER = '';
+    render();
+  };
+  window._deleteLead = async id => {
+    try { await db.collection('leads').doc(id).delete(); } catch(e) { console.error(e); }
+    openDetailId = null;
+    const overlay = document.querySelector('.modal-overlay');
+    if (overlay) overlay.remove();
+  };
+  window._onSearch = v => { currentFilter.search = v; render(); };
+  window._onFilterStatus = v => { currentFilter.status = v; render(); };
+  window._onFilterSource = v => { currentFilter.source = v; render(); };
+
+  // Quick mark done from action banner — archives current follow-up, clears it, logs it
+  window._quickDone = async id => {
+    const l = leads.find(x => x.id === id);
+    if (!l || !l.followUpDate) return;
+    try {
+      await db.collection('leads').doc(id).set({
+        followUpHistory: FV.arrayUnion({
+          date: l.followUpDate,
+          time: l.followUpTime || '',
+          type: l.followUpType || '',
+          notes: l.followUpNotes || '',
+          completedAt: new Date().toISOString().slice(0,10),
+        }),
+        activity: FV.arrayUnion(mkEntry('followup_done',
+          'Follow-up done · ' + (l.followUpType || 'Follow Up') + ' (' + formatDate(l.followUpDate) + ')',
+          { fuDate: l.followUpDate, note: l.followUpNotes || '' })),
+        followUpType: '',
+        followUpDate: '',
+        followUpTime: '',
+        followUpNotes: '',
+        lastUpdated: new Date().toISOString(),
+      }, { merge: true });
+    } catch (err) {
+      console.error('Quick done failed', err);
+      alert('Could not update. Try again.');
+    }
+  };
+
+  // Real-time listener
+  db.collection('leads').onSnapshot(snap => {
+    leads = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    leads.sort((a,b) => (b.lastUpdated||b.dateAdded||'').localeCompare(a.lastUpdated||a.dateAdded||''));
+    render();
+    maybeRefreshDetail();
+  }, err => {
+    console.error('Firestore error', err);
+    document.getElementById('app').innerHTML = `
+      <div class="empty-state">
+        <div class="icon">⚠️</div>
+        <p>Could not connect to database. Check your Firebase config and Firestore rules.</p>
+      </div>`;
+  });
+
+})();
+</script>
+</body>
+</html>
