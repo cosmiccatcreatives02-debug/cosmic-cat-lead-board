@@ -13,9 +13,9 @@
       --fg: #1a1d2e;
       --fg-muted: #6b7084;
       --border: #e2e4ed;
-      --accent: #2d5be3;
-      --accent-light: #e8edfb;
-      --accent-hover: #1e4bcc;
+      --accent: #6B7BF7;
+      --accent-light: #eeeffe;
+      --accent-hover: #5567e0;
       --red: #e53e3e;
       --red-bg: #fef2f2;
       --red-border: #fecaca;
@@ -42,9 +42,9 @@
         --fg: #e4e5ed;
         --fg-muted: #8b8fa6;
         --border: #2c2f42;
-        --accent: #5b8af5;
-        --accent-light: #1e2540;
-        --accent-hover: #7aa2ff;
+        --accent: #8B99FF;
+        --accent-light: #1e2040;
+        --accent-hover: #a3adff;
         --red: #fc8181;
         --red-bg: #2a1515;
         --red-border: #4a2020;
@@ -67,9 +67,9 @@
       --fg: #e4e5ed;
       --fg-muted: #8b8fa6;
       --border: #2c2f42;
-      --accent: #5b8af5;
-      --accent-light: #1e2540;
-      --accent-hover: #7aa2ff;
+      --accent: #8B99FF;
+      --accent-light: #1e2040;
+      --accent-hover: #a3adff;
       --red: #fc8181;
       --red-bg: #2a1515;
       --red-border: #4a2020;
@@ -109,7 +109,8 @@
       position: sticky; top: 0;
       background: var(--bg); z-index: 5;
       padding: 16px 0 12px;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 2px solid var(--border);
+      border-image: linear-gradient(90deg, #6B7BF7 0%, #a3adff 50%, #6B7BF7 100%) 1;
     }
     .header-row {
       display: flex; align-items: center; justify-content: space-between;
@@ -119,11 +120,11 @@
     .logo { display: flex; align-items: center; gap: 10px; }
     .logo-icon {
       width: 32px; height: 32px;
-      background: var(--accent); border-radius: 50%;
+      border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      color: #fff; font-family: var(--font-mono); font-size: 9px; font-weight: 700;
-      letter-spacing: 0.5px; line-height: 1;
+      line-height: 1; flex-shrink: 0;
     }
+    .logo-icon svg { width: 32px; height: 32px; }
     .logo h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
     .logo h1 span { color: var(--fg-muted); font-weight: 400; font-size: 14px; margin-left: 6px; }
 
@@ -875,7 +876,7 @@ const firebaseConfig = {
   function identityScreen() {
     return `
       <div class="identity">
-        <div class="logo-icon" style="width:48px;height:48px;font-size:13px;margin:0 auto">CC</div>
+        <div class="logo-icon" style="width:48px;height:48px;margin:0 auto"><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><circle cx="100" cy="100" r="96" fill="#6B7BF7"/><circle cx="100" cy="100" r="78" fill="none" stroke="#fff" stroke-width="5"/><text x="100" y="68" text-anchor="middle" font-family="'DM Sans',system-ui,sans-serif" font-weight="800" font-size="42" fill="#fff" letter-spacing="3">COS</text><text x="100" y="112" text-anchor="middle" font-family="'DM Sans',system-ui,sans-serif" font-weight="800" font-size="42" fill="#fff" letter-spacing="3">MIC</text><text x="100" y="156" text-anchor="middle" font-family="'DM Sans',system-ui,sans-serif" font-weight="800" font-size="42" fill="#fff" letter-spacing="3">CAT</text></svg></div>
         <h2>Who's on this device?</h2>
         <p>Pick your name once. Everything you log gets stamped with it, so the team can see who did what.</p>
         <div class="identity-grid">
@@ -925,7 +926,7 @@ const firebaseConfig = {
       <div class="header">
         <div class="header-row">
           <div class="logo">
-            <div class="logo-icon">CC</div>
+            <div class="logo-icon"><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><circle cx="100" cy="100" r="96" fill="#6B7BF7"/><circle cx="100" cy="100" r="78" fill="none" stroke="#fff" stroke-width="5"/><text x="100" y="68" text-anchor="middle" font-family="'DM Sans',system-ui,sans-serif" font-weight="800" font-size="42" fill="#fff" letter-spacing="3">COS</text><text x="100" y="112" text-anchor="middle" font-family="'DM Sans',system-ui,sans-serif" font-weight="800" font-size="42" fill="#fff" letter-spacing="3">MIC</text><text x="100" y="156" text-anchor="middle" font-family="'DM Sans',system-ui,sans-serif" font-weight="800" font-size="42" fill="#fff" letter-spacing="3">CAT</text></svg></div>
             <h1>Lead Board v2.0 <span>Cosmic Cat</span></h1>
           </div>
           <div class="header-actions">
