@@ -1,0 +1,39 @@
+// ============================================================
+//  Cosmic Cat Lead Board — Firestore security rules
+// ============================================================
+//
+//  Paste the whole of this file into:
+//    Firebase Console -> Firestore Database -> Rules tab
+//  then click Publish.
+//
+//  WHAT THIS DOES
+//  Only a signed-in account can read or write the leads
+//  collection. Everyone else -- including anyone who finds the
+//  project ID in the page source -- is refused by Google's
+//  servers before the request reaches the data.
+//
+//  WHAT NOT TO USE
+//  Do NOT publish `allow read, write: if true;`. That lets
+//  anyone on the internet read, change, or delete every lead,
+//  even without the site's URL. Test mode is the same thing
+//  with a 30-day timer on it.
+//
+// ============================================================
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // The leads collection — signed-in team members only.
+    match /leads/{leadId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Everything else is closed. Add a match block above this
+    // one if the board ever needs another collection.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
