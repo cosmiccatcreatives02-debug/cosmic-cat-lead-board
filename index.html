@@ -578,6 +578,8 @@ const firebaseConfig = {
   // Add a line here whenever you create a new account in Firebase.
   const EMAIL_TO_NAME = {
     'cosmiccatcreatives01@gmail.com': 'Aljun',
+    'cosmiccatcreatives02@gmail.com': 'Aljun',
+    'banasgia@gmail.com': 'Gia',
   };
   function nameForEmail(email) {
     if (!email) return '';
@@ -1589,7 +1591,11 @@ const firebaseConfig = {
       case 'auth/too-many-requests':    return 'Too many attempts. Wait a few minutes and try again.';
       case 'auth/network-request-failed': return 'No connection. Check your internet and try again.';
       case 'auth/operation-not-allowed': return 'Email sign-in is not switched on in Firebase yet.';
-      default:                          return 'Could not sign in. Please try again.';
+      case 'auth/configuration-not-found': return 'Authentication is not set up in Firebase yet. Enable Email/Password under Authentication in the Firebase console.';
+      case 'auth/invalid-api-key':
+      case 'auth/api-key-not-valid':    return 'The Firebase config in this page is wrong. Check the apiKey.';
+      case 'auth/missing-password':     return 'Enter your password.';
+      default:                          return 'Could not sign in (' + (code || 'unknown') + '). Send Aljun this code.';
     }
   }
 
