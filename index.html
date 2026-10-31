@@ -455,6 +455,29 @@
       white-space: pre;
     }
 
+    /* Alarm bell */
+    .bell-btn {
+      background: none; border: 1px solid var(--border);
+      border-radius: var(--radius-sm); cursor: pointer;
+      font-size: 15px; line-height: 1; padding: 7px 9px;
+      color: var(--fg);
+    }
+    .bell-btn:hover { background: var(--accent-light); border-color: var(--accent); }
+    .bell-btn.muted { opacity: 0.5; }
+    .bell-btn.blocked {
+      border-color: var(--yellow); background: var(--yellow-bg); color: var(--yellow);
+      animation: bellNudge 2s ease-in-out infinite;
+    }
+    @keyframes bellNudge {
+      0%, 92%, 100% { transform: rotate(0deg); }
+      94% { transform: rotate(-12deg); }
+      96% { transform: rotate(12deg); }
+      98% { transform: rotate(-6deg); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .bell-btn.blocked { animation: none; }
+    }
+
     /* Login screen */
     .login-wrap {
       max-width: 380px; margin: 64px auto; padding: 32px 28px;
@@ -616,6 +639,26 @@ const firebaseConfig = {
   // Re-rendering the login screen rebuilds the inputs, so keep the typed
   // email here — otherwise one password typo clears it and they retype.
   let loginEmailDraft = '';
+
+  // ============================================================
+  //  ALARM STATE
+  //  Browsers refuse to play sound until the person has interacted
+  //  with the page, so audio is unlocked on the sign-in click and
+  //  the bell turns amber if it is ever blocked.
+  // ============================================================
+  const SOUND_KEY = 'ccLeadBoardSound';
+  const REMIND_MS = 10 * 60 * 1000;   // repeat an unhandled alarm this often
+  const DEFAULT_DUE_TIME = '09:00';   // when a follow-up has a date but no time
+
+  let soundOn = true;
+  try { soundOn = localStorage.getItem(SOUND_KEY) !== 'off'; } catch (e) { /* private mode */ }
+
+  let audioCtx = null;
+  let audioBlocked = false;
+  let knownLeadIds = null;   // null until the first snapshot sets the baseline
+  let lastAssigned = {};     // leadId -> assignedTo, to spot reassignment
+  let alarmLog = {};         // "reason:leadId" -> last time we sounded it
+  let alarmTimer = null;
 
   function readUser() {
     try { return localStorage.getItem(USER_KEY) || ''; } catch (e) { return ''; }
@@ -1036,6 +1079,7 @@ const firebaseConfig = {
             <h1>Lead Board v2.0 <span>Cosmic Cat</span></h1>
           </div>
           <div class="header-actions">
+            <button class="bell-btn ${soundOn ? (audioBlocked ? 'blocked' : '') : 'muted'}" onclick="window._toggleSound()" title="${audioBlocked ? 'Sound is blocked by the browser — click to turn it on' : (soundOn ? 'Alarm sound is on — click to mute' : 'Alarm sound is muted — click to unmute')}">${soundOn ? (audioBlocked ? '🔔!' : '🔔') : '🔕'}</button>
             <button class="theme-toggle" onclick="window._toggleTheme()" title="Switch theme" id="themeBtn">${document.documentElement.getAttribute('data-theme') === 'dark' || (!document.documentElement.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches) ? '☀️' : '🌙'}</button>
             <div class="user-chip" onclick="window._signOut()" title="${esc(AUTH_USER && AUTH_USER.email ? AUTH_USER.email : '')} — click to sign out">👤 ${esc(CURRENT_USER)} <small>sign out</small></div>
             <button class="btn btn-ghost" onclick="window._showFeed()">📋 Activity</button>
@@ -1546,6 +1590,186 @@ const firebaseConfig = {
   };
 
   // ============================================================
+  //  ALARM — sound and desktop notifications
+  // ============================================================
+
+  // The chime is synthesised rather than loaded, so there is no sound
+  // file to host and nothing extra to download.
+  function unlockAudio() {
+    if (!audioCtx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) { audioBlocked = false; return false; }   // no Web Audio: stay silent, don't nag
+      try { audioCtx = new AC(); } catch (e) { return false; }
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+    const ok = audioCtx.state === 'running';
+    audioBlocked = !ok;
+    return ok;
+  }
+
+  function chime(urgent) {
+    if (!soundOn) return;
+    if (!unlockAudio()) return;
+    // Rising two-note for ordinary alerts, three insistent notes when overdue
+    const notes = urgent ? [987.77, 987.77, 1318.51] : [880, 1174.66];
+    const step = urgent ? 0.16 : 0.18;
+    const t0 = audioCtx.currentTime;
+    notes.forEach((freq, i) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const start = t0 + i * step;
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(urgent ? 0.3 : 0.22, start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.45);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(start);
+      osc.stop(start + 0.5);
+    });
+  }
+
+  function notify(title, body, tag) {
+    if (!('Notification' in window)) return;
+    if (Notification.permission !== 'granted') return;
+    try { new Notification(title, { body: body, tag: tag, icon: LOGO_SRC }); } catch (e) { /* some browsers refuse */ }
+  }
+
+  function askNotificationPermission() {
+    if (!('Notification' in window)) return;
+    if (Notification.permission !== 'default') return;
+    try { Notification.requestPermission().catch(() => {}); } catch (e) { /* older signature */ }
+  }
+
+  // When a follow-up actually comes due. A date with no time is treated as
+  // due at 09:00, so a 3pm follow-up does not start ringing at midnight.
+  function dueAt(lead) {
+    if (!lead.followUpDate) return null;
+    const time = /^\d{2}:\d{2}/.test(lead.followUpTime || '') ? lead.followUpTime : DEFAULT_DUE_TIME;
+    const d = new Date(lead.followUpDate + 'T' + time.slice(0,5) + ':00');
+    return isNaN(d.getTime()) ? null : d.getTime();
+  }
+
+  // A follow-up alarm belongs to whoever owns the lead. Unassigned work
+  // alerts the whole team, so nothing falls silently between people.
+  function isMine(lead) {
+    const who = lead.assignedTo || '';
+    return !who || who === 'Unassigned' || who === CURRENT_USER;
+  }
+
+  // firstPass is the snapshot you arrive on. "A new lead appeared" and
+  // "this was just assigned to me" are change detection and need something
+  // to compare against, so they stay quiet. "This follow-up is due" is a
+  // state check — if you log in with two overdue leads you should hear
+  // about it now, not sixty seconds later.
+  function collectAlarms(firstPass) {
+    const now = Date.now();
+    const out = [];
+
+    leads.forEach(l => {
+      if (!firstPass) {
+        // A lead someone else just added
+        if (!knownLeadIds.has(l.id)) {
+          const creator = (l.activity && l.activity[0] && l.activity[0].by) || '';
+          if (creator !== CURRENT_USER) {
+            out.push({ key: 'new:' + l.id, once: true, urgent: false,
+                       title: 'New lead', body: l.fbName + (l.source ? ' · ' + l.source : '') });
+          }
+        }
+
+        // A lead just put in my name
+        const prev = lastAssigned[l.id];
+        const cur = l.assignedTo || '';
+        if (prev !== undefined && prev !== cur && cur === CURRENT_USER) {
+          out.push({ key: 'assign:' + l.id + ':' + cur, once: true, urgent: false,
+                     title: 'Assigned to you', body: l.fbName });
+        }
+      }
+
+      // A follow-up that is due and still unhandled. Marking it done
+      // clears followUpDate, which is what stops the reminders.
+      if (l.status !== 'Won' && l.status !== 'Lost' && isMine(l)) {
+        const due = dueAt(l);
+        if (due !== null && now >= due) {
+          const overdue = now - due > 86400000;
+          out.push({ key: 'due:' + l.id + ':' + l.followUpDate, once: false, urgent: overdue,
+                     title: overdue ? 'Overdue follow-up' : 'Follow-up due',
+                     body: l.fbName + (l.followUpType ? ' · ' + l.followUpType : '') });
+        }
+      }
+    });
+
+    return out;
+  }
+
+  function checkAlarms() {
+    if (!AUTH_USER) return;
+
+    const now = Date.now();
+    const events = collectAlarms(knownLeadIds === null);
+
+    // Re-baseline every pass, including the first, so existing leads
+    // never alarm on login — only what changes after you arrive does.
+    knownLeadIds = new Set(leads.map(l => l.id));
+    lastAssigned = {};
+    leads.forEach(l => { lastAssigned[l.id] = l.assignedTo || ''; });
+
+    // Forget alarms for leads that are gone, so the log cannot grow forever
+    Object.keys(alarmLog).forEach(k => {
+      const id = k.split(':')[1];
+      if (!knownLeadIds.has(id)) delete alarmLog[k];
+    });
+
+    let sounded = false;
+    let mostUrgent = false;
+    events.forEach(ev => {
+      const last = alarmLog[ev.key];
+      if (last !== undefined && (ev.once || now - last < REMIND_MS)) return;
+      alarmLog[ev.key] = now;
+      notify(ev.title, ev.body, ev.key);
+      if (ev.urgent) mostUrgent = true;
+      sounded = true;
+    });
+
+    // One sound per pass however many things fired, so five due
+    // follow-ups do not produce five overlapping chimes.
+    if (sounded) {
+      const before = audioBlocked;
+      chime(mostUrgent);
+      if (audioBlocked !== before) render();
+    }
+  }
+
+  function startAlarmTimer() {
+    if (alarmTimer) return;
+    // Follow-ups come due by the clock, not by a data change, so poll too
+    alarmTimer = setInterval(checkAlarms, 60000);
+  }
+
+  function stopAlarmTimer() {
+    if (alarmTimer) { clearInterval(alarmTimer); alarmTimer = null; }
+    knownLeadIds = null;
+    lastAssigned = {};
+    alarmLog = {};
+  }
+
+  window._toggleSound = () => {
+    soundOn = !soundOn;
+    try { localStorage.setItem(SOUND_KEY, soundOn ? 'on' : 'off'); } catch (e) { /* private mode */ }
+    if (soundOn) { unlockAudio(); askNotificationPermission(); chime(false); }
+    render();
+  };
+
+  // Any click counts as the gesture browsers want, so a restored session
+  // that reloaded without a sign-in click can still recover sound.
+  document.addEventListener('pointerdown', function onFirstTouch() {
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume().then(() => { audioBlocked = false; render(); }).catch(() => {});
+    }
+  }, { passive: true });
+
+  // ============================================================
   //  AUTH — the board is gated behind a real Firebase sign-in.
   //  Firestore rules reject every read and write from a signed-out
   //  client, so this screen is not just a curtain over the data.
@@ -1569,6 +1793,11 @@ const firebaseConfig = {
     authBusy = true;
     authError = '';
     render();
+
+    // This click is the user gesture browsers require before a page may
+    // play sound, so claim it now rather than at the first alarm.
+    unlockAudio();
+    askNotificationPermission();
 
     try {
       await auth.signInWithEmailAndPassword(email, pass);
@@ -1608,6 +1837,7 @@ const firebaseConfig = {
     leadsUnsub = db.collection('leads').onSnapshot(snap => {
       leads = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       leads.sort((a,b) => (b.lastUpdated||b.dateAdded||'').localeCompare(a.lastUpdated||a.dateAdded||''));
+      checkAlarms();
       render();
       maybeRefreshDetail();
     }, err => {
@@ -1641,10 +1871,12 @@ const firebaseConfig = {
         try { localStorage.setItem(USER_KEY, mapped); } catch (e) { /* private mode */ }
       }
       startLeadsListener();
+      startAlarmTimer();
       render();
     } else {
       AUTH_USER = false;
       stopLeadsListener();
+      stopAlarmTimer();
       render();
     }
   });
