@@ -30,6 +30,14 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
+    // Proposals app (/proposals/): proposals, invoices, receipts,
+    // activity log and settings. Signed-in team members only.
+    match /ccc_proposals/{docId} { allow read, write: if request.auth != null; }
+    match /ccc_invoices/{docId}  { allow read, write: if request.auth != null; }
+    match /ccc_receipts/{docId}  { allow read, write: if request.auth != null; }
+    match /ccc_activity/{docId}  { allow read, write: if request.auth != null; }
+    match /ccc_settings/{docId}  { allow read, write: if request.auth != null; }
+
     // Everything else is closed. Add a match block above this
     // one if the board ever needs another collection.
     match /{document=**} {
