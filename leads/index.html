@@ -526,6 +526,7 @@
   </style>
 </head>
 <body>
+<script src="../shared/appbar.js" data-app="leads"></script>
 
 <div id="app">
   <div class="empty-state">
@@ -1082,7 +1083,6 @@ const firebaseConfig = {
             <button class="bell-btn ${soundOn ? (audioBlocked ? 'blocked' : '') : 'muted'}" onclick="window._toggleSound()" title="${audioBlocked ? 'Sound is blocked by the browser — click to turn it on' : (soundOn ? 'Alarm sound is on — click to mute' : 'Alarm sound is muted — click to unmute')}">${soundOn ? (audioBlocked ? '🔔!' : '🔔') : '🔕'}</button>
             <button class="theme-toggle" onclick="window._toggleTheme()" title="Switch theme" id="themeBtn">${document.documentElement.getAttribute('data-theme') === 'dark' || (!document.documentElement.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches) ? '☀️' : '🌙'}</button>
             <div class="user-chip" onclick="window._signOut()" title="${esc(AUTH_USER && AUTH_USER.email ? AUTH_USER.email : '')} — click to sign out">👤 ${esc(CURRENT_USER)} <small>sign out</small></div>
-            <a class="btn btn-ghost" href="../proposals/" style="text-decoration:none" title="Proposals, invoices and receipts">📄 Proposals</a>
             <button class="btn btn-ghost" onclick="window._showFeed()">📋 Activity</button>
             <button class="btn btn-primary" onclick="window._openAdd()">+ Add Lead</button>
           </div>

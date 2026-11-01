@@ -256,6 +256,7 @@ ul.pp-desc{margin-top:6px}
 </style>
 </head>
 <body>
+<script src="../shared/appbar.js" data-app="proposals"></script>
 <div class="login" id="login" hidden>
   <button class="iconbtn login-theme themeBtn" onclick="toggleTheme()" title="Light / dark mode">🌙</button>
   <div class="login-card">
@@ -274,13 +275,12 @@ ul.pp-desc{margin-top:6px}
 </div>
 <div class="topbar">
   <button class="iconbtn menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')" title="Menu">☰</button>
-  <a href="../" title="Cosmic Cat home" style="display:flex;align-items:center;gap:8px;color:inherit;text-decoration:none"><img class="ccc-logo" alt="Cosmic Cat" style="width:34px;height:34px;flex-shrink:0"><span class="logo">Cosmic Cat</span></a>
+  
   <button class="tab on" data-mod="proposals">Proposals<span class="tcount" id="tcProp"></span></button>
   <button class="tab" data-mod="invoices">Invoices<span class="tcount" id="tcInv"></span></button>
   <button class="tab" data-mod="receipts">Receipts<span class="tcount" id="tcRec"></span></button>
   <button class="tab" data-mod="settings">Settings</button>
   <button class="tab" data-mod="activity">Activity</button>
-  <a class="tab" href="../leads/" style="text-decoration:none;color:inherit;opacity:.75" title="Open the Lead Board">Lead Board ↗</a>
   <div class="tbr"><span id="sync"></span><button class="iconbtn themeBtn" onclick="toggleTheme()" title="Light / dark mode">🌙</button><button class="userchip" id="userChip" onclick="openProfile()" title="Your name"></button><button class="btn btn-outline btn-sm" onclick="signOut()">Sign out</button></div>
 </div>
 <div class="main">

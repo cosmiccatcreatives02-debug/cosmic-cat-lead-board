@@ -7,6 +7,7 @@ Live: https://soft-entremet-e20bf9.netlify.app
 | `/` | Home: buttons to each tool |
 | `/leads/` | Lead Board |
 | `/proposals/` | Proposals, invoices, acknowledgement receipts, activity log |
+| `shared/appbar.js` | The app bar across the top of every page. Add a tool by adding one line to `APPS`. |
 
 ## How it fits together
 - **GitHub** (this repo) holds the code. Every push to `main` makes Netlify redeploy.
@@ -27,5 +28,5 @@ Firebase console > Firestore > Rules > Publish whenever it changes.
 2. Add their email and name to `EMAIL_TO_NAME` in `leads/index.html` and `TEAM_NAMES` in `proposals/firebase-config.js`.
 
 ## Adding a new tool
-Create a folder (e.g. `training/`), add a card for it on the home page (`index.html`),
+Create a folder (e.g. `training/`), add it to `APPS` in `shared/appbar.js`, add a card on the home page (`index.html`),
 and add its collections to `firestore.rules`.

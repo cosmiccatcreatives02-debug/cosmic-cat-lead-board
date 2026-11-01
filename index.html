@@ -10,7 +10,8 @@
 :root{--bg:#f5f5f7;--sf:#fff;--tx:#1d1d1f;--tx2:#6e6e73;--bd:#e3e3e8;--brand:#5271FF}
 .dark{--bg:#1c1c1e;--sf:#2c2c2e;--tx:#f5f5f7;--tx2:#a1a1a6;--bd:#3a3a3c}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Figtree',system-ui,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:56px 20px}
+body{font-family:'Figtree',system-ui,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh}
+.home{display:flex;flex-direction:column;align-items:center;padding:56px 20px}
 header{text-align:center;margin-bottom:36px}
 header img{width:84px;height:84px}
 h1{font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:28px;margin:14px 0 4px}
@@ -23,11 +24,13 @@ header p{color:var(--tx2);font-size:15px}
 .card p{color:var(--tx2);font-size:14px;line-height:1.5}
 .soon{opacity:.55;pointer-events:none}
 .soon .ico{background:var(--tx2)}
-.theme{position:fixed;top:16px;right:16px;width:36px;height:36px;border-radius:10px;border:1px solid var(--bd);background:var(--sf);font-size:16px;cursor:pointer}
+.theme{position:fixed;top:56px;right:16px;width:36px;height:36px;border-radius:10px;border:1px solid var(--bd);background:var(--sf);font-size:16px;cursor:pointer}
 footer{margin-top:40px;color:var(--tx2);font-size:12px;text-align:center}
 </style>
 </head>
 <body>
+<script src="shared/appbar.js" data-app="home"></script>
+<div class="home">
 <button class="theme" id="theme" onclick="toggleTheme()" title="Light / dark mode">🌙</button>
 <header>
   <img src="logo.png" alt="Cosmic Cat">
@@ -50,8 +53,14 @@ footer{margin-top:40px;color:var(--tx2);font-size:12px;text-align:center}
     <h2>Training</h2>
     <p>Coming soon: onboarding and knowledge base for new hires.</p>
   </div>
+  <div class="card soon">
+    <div class="ico">👥</div>
+    <h2>Clients</h2>
+    <p>Coming soon: client records, project progress and payments in one place.</p>
+  </div>
 </main>
 <footer>cosmic-cat-creatives.com · design@cosmic-cat-creatives.com</footer>
+</div>
 <script>
 function apply(){let t=null;try{t=localStorage.getItem('ccc-theme')}catch(e){}const d=t?t==='dark':matchMedia('(prefers-color-scheme: dark)').matches;document.body.classList.toggle('dark',d);document.getElementById('theme').textContent=d?'☀️':'🌙'}
 function toggleTheme(){const d=!document.body.classList.contains('dark');try{localStorage.setItem('ccc-theme',d?'dark':'light')}catch(e){}apply()}
