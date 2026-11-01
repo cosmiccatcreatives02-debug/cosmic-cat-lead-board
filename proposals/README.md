@@ -1,6 +1,6 @@
 # Cosmic Cat Creatives — Proposals, Invoices & Receipts
 
-Live web app for the team. Same Firebase project as the Lead Board (`cosmic-cat-leads-board`).
+Part of the Cosmic Cat team platform (see the README at the repo root). Live at /proposals/.
 
 ## Files
 - `index.html` — the whole app
