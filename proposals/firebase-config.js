@@ -16,5 +16,6 @@ window.TEAM_NAMES = {
   'cosmiccatcreatives01@gmail.com': 'Aljun',
   'cosmiccatcreatives02@gmail.com': 'Aljun',
   'design@cosmic-cat-creatives.com': 'Aljun',
-  'banasgia@gmail.com': 'Gia'
+  'banasgia@gmail.com': 'Gia',
+  'maybethgbisual@gmail.com': 'Maybeth'
 };
