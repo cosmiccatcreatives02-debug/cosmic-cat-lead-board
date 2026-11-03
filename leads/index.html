@@ -329,6 +329,8 @@
     }
     .modal h2 .close-btn:hover { color: var(--fg); }
     .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-group input:invalid:not(:placeholder-shown),
+    .form-group input:invalid:not(:focus):not([value=""]) { border-color: var(--red); background: var(--red-bg); }
     .form-group { display: flex; flex-direction: column; gap: 4px; }
     .form-group.full { grid-column: 1 / -1; }
     .form-group label {
@@ -1185,11 +1187,11 @@ const firebaseConfig = {
         <div class="form-grid">
           <div class="form-group full">
             <label>Facebook Name *</label>
-            <input type="text" id="f_fbName" value="${esc(l.fbName||'')}" required>
+            <input type="text" id="f_fbName" value="${esc(l.fbName||'')}" required pattern="[^\d]*" title="Name should not contain digits — looks like a phone number got pasted here">
           </div>
           <div class="form-group">
             <label>Contact Number</label>
-            <input type="text" id="f_contact" value="${esc(l.contactNumber||'')}">
+            <input type="tel" inputmode="numeric" maxlength="13" id="f_contact" value="${esc(window._prettyPhone(l.contactNumber||''))}" placeholder="09XX XXX XXXX" pattern="^(0?9\d{2}\s?\d{3}\s?\d{4})$" title="Philippine mobile number — 11 digits starting with 09" oninput="window._formatPhone(this)">
           </div>
           <div class="form-group">
             <label>Source</label>
@@ -1256,7 +1258,7 @@ const firebaseConfig = {
       const pkg = document.getElementById('f_package').value;
       const data = {
         fbName: document.getElementById('f_fbName').value.trim(),
-        contactNumber: document.getElementById('f_contact').value.trim(),
+        contactNumber: document.getElementById('f_contact').value.replace(/\D+/g,''),
         source: document.getElementById('f_source').value,
         packageInterest: pkg === 'Custom' ? (document.getElementById('f_customPkg').value.trim() || 'Custom') : pkg,
         assignedTo: document.getElementById('f_assigned').value,
@@ -1313,7 +1315,7 @@ const firebaseConfig = {
         ${l.followUpDate ? `<span class="urgency-dot ${urgencyDotClass(u)}"></span><span style="font-size:13px;color:var(--fg-muted)">${relativeDate(l.followUpDate)}</span>` : ''}
         <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="this.closest('.modal-overlay').remove(); window._editLead('${l.id}')">✏️ Edit</button>
       </div>
-      <div class="detail-field"><div class="label">Contact Number</div><div class="value">${esc(l.contactNumber || 'Not provided')}</div></div>
+      <div class="detail-field"><div class="label">Contact Number</div><div class="value">${l.contactNumber ? esc(window._prettyPhone(l.contactNumber)) : 'Not provided'}</div></div>
       <div class="detail-field"><div class="label">Source</div><div class="value">${esc(l.source)}</div></div>
       <div class="detail-field"><div class="label">Package Interest</div><div class="value">${esc(l.packageInterest)}</div></div>
       <div class="detail-field"><div class="label">Assigned To</div><div class="value">${esc(l.assignedTo)}</div></div>
@@ -1561,6 +1563,29 @@ const firebaseConfig = {
   window._onSearch = v => { currentFilter.search = v; render(); };
   window._onFilterStatus = v => { currentFilter.status = v; render(); };
   window._onFilterSource = v => { currentFilter.source = v; render(); };
+
+  // Group a stored 11-digit mobile as "09XX XXX XXXX" for display. Returns input
+  // unchanged if it is not exactly 11 digits, so legacy numbers still render.
+  function prettyPhone(s) {
+    const d = (s || '').replace(/\D+/g, '');
+    if (d.length !== 11) return s || '';
+    return d.slice(0,4) + ' ' + d.slice(4,7) + ' ' + d.slice(7);
+  }
+  window._prettyPhone = prettyPhone;
+
+  // Format a contact number as the user types: 11 digits max, grouped as "09XX XXX XXXX".
+  // We save it stripped of spaces so searching, deduping and export stay simple.
+  window._formatPhone = el => {
+    const digits = (el.value || '').replace(/\D+/g, '').slice(0, 11);
+    let next = digits;
+    if (digits.length > 7) next = digits.slice(0,4) + ' ' + digits.slice(4,7) + ' ' + digits.slice(7);
+    else if (digits.length > 4) next = digits.slice(0,4) + ' ' + digits.slice(4);
+    if (next !== el.value) {
+      const atEnd = el.selectionStart === el.value.length;
+      el.value = next;
+      if (atEnd) try { el.setSelectionRange(next.length, next.length); } catch(e) {}
+    }
+  };
 
   // Quick mark done from action banner — archives current follow-up, clears it, logs it
   window._quickDone = async id => {
